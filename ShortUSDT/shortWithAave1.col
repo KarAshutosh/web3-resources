@@ -1,0 +1,30 @@
+pragma solidity ^0.9.0;
+
+import "@aave/aave-contracts/contracts/AAVE.sol";
+
+contract ShortUSDTContract {
+    address public owner;
+    AAVE public aave;
+
+    constructor(address _aave) public {
+        owner = msg.sender;
+        aave = AAVE(_aave);
+    }
+
+    function shortUSDT(uint256 _amount) public {
+        // require that the sender has enough USDT to short
+        require(owner.balance >= _amount, "Not enough USDT to short");
+
+        // calculate the return amount by multiplying the short amount by the current USDT price
+        uint256 returnAmount = _amount * 100;
+
+        // deposit the short amount into Aave
+        aave.deposit(msg.sender, _amount);
+
+        // borrow the return amount from Aave
+        aave.borrow(msg.sender, returnAmount);
+
+        // transfer the borrowed amount to the sender
+        owner.transfer(returnAmount);
+    }
+}
